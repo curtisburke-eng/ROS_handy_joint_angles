@@ -137,6 +137,9 @@ include_directories(
 add_executable(joint1_pose_node src/joint1_pose.cpp)
 target_link_libraries(joint1_pose_node ${catkin_LIBRARIES})
 
+add_executable(joint2_pose_node src/joint2_pose.cpp)
+target_link_libraries(joint2_pose_node ${catkin_LIBRARIES})
+
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
 ## target back to the shorter version for ease of user use

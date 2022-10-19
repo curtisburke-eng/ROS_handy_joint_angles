@@ -1,6 +1,7 @@
 <launch>
 
 	<node name="joint1" pkg="handy_joint_angles" type="joint1_pose_node"	/>
+	<node name="joint2" pkg="handy_joint_angles" type="joint2_pose_node"	/>
 	<node name="rosserial" pkg="rosserial_arduino" type="serial_node.py"	/>
 
 </launch>
