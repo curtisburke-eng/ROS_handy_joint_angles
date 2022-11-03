@@ -15,7 +15,7 @@
 // Include Libraries & Headers
 #include <ros/ros.h>
 #include <std_msgs/UInt16.h>
-#include <math.h>                                                       // cos, sin, etc
+#include <math.h>                                                       // cmath: cos, sin, atan2, pow, etc.
 
 // ------------------------------------------------------------------------
 // Setup Global Variables
@@ -36,7 +36,7 @@ float L_E = 2;
 // Declare & Define Supporting Fuctions
 // ------------------------------------------------------------------------
 
-bool computeIK(int px, int py, int phi_deg) {
+bool computeIK(float x, float y, float phi_deg) {
 /* 
 *   computeIK completes the math to translate  and x & y coord. to joint angles
 *       of a 3DOF planar arm. 
@@ -45,28 +45,53 @@ bool computeIK(int px, int py, int phi_deg) {
 */
 
     // Convert to radians
-    float phi = (phi_deg * pi)/180 ; // radians
+    float phi = (phi_deg * pi)/180 ;                                   // radians
 
-    // Equations for Inverse kinematics
-    wx = x - L_3*cos(phi);
-    wy = y - L_3*sin(phi);
-
-    // TODO: EDIT BELOW (convert from python to C++)
-    /*
-    delta = wx**2 + wy**2
-    c2 = ( delta -a1**2 -a2**2)/(2*a1*a2)
-    s2 = sqrt(1-c2**2)  # elbow down
-    theta_2 = arctan2(s2, c2)
-
-    s1 = ((a1+a2*c2)*wy - a2*s2*wx)/delta
-    c1 = ((a1+a2*c2)*wx + a2*s2*wy)/delta
-    theta_1 = arctan2(s1,c1)
-    theta_3 = phi-theta_1-theta_2
-
-    print('theta_1: ', rad2deg(theta_1))
-    print('theta_2: ', rad2deg(theta_2))
-    print('theta_3: ', rad2deg(theta_3))
+    /* 
+    Equations for Inverse kinematics (3DOF Planar)
+        x = L_1*cos(theta_1) + L_2*cos(theta_1 + theta_2) + L_3*cos(theta_1 + theta_2 + theta_3)
+        y = L_1*sin(theta_1) + L_2*sin(theta_1 + theta_2) + L_3*sin(theta_1 + theta_2 + theta_3)
+        phi = theta_1 + theta_2 + theta_3
     */
+
+    // Rearrange & subsitute
+    float x_2dof = x - L_3*cos(phi);
+    float y_2dof = y - L_3*sin(phi);
+    
+    // Compute the sum of squres (sos) for the 2_dof section of the eqns
+    float sos = pow(x_2dof,2) + pow(y_2dof,2);
+
+    // Expand trig functions & combine like terms
+    // sos = 2*L_1*L_2*cos(theta_2) + L_1^2 + L_2^2
+    // Rearange (Solving for cos(theta_2))
+    float c2 = (sos - pow(L_1,2) - pow(L_2,2))/(2*L_1*L_2);
+
+    // Using identity: sin^2(theta) + cos^2(theta) = 1
+    // Solve for sin
+    float s2 = sqrt(1-pow(c2,2));                                       // elbow down
+
+    // Using atan2 with sin and cos
+    // Solve for theta_2
+    float theta_2 = atan2(s2, c2);
+
+    // ---- TODO: COMMENT ON HOW THIS HAPPEND ----
+    
+    // Solve for sin(theta_1)
+    float s1 = ((L_1 + L_2*c2)*y_2dof - L_2*s2*x_2dof)/sos;
+
+    // Solve for cos(theta_1)
+    float c1 = ((L_1 + L_2*c2)*x_2dof + L_2*s2*y_2dof)/sos;
+
+    // Using atan2 with sin and cos
+    // Solve for theta_1
+    float theta_1 = atan2(s1,c1);
+
+    // Rearrage 3rd kinematic eqn
+    // Solve for theta_3
+    float theta_3 = phi - theta_1 - theta_2;
+
+    // Convert radians to Degrees
+    
 
     // Check that soln is real
 
