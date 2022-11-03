@@ -45,7 +45,7 @@ bool computeIK(float x, float y, float phi_deg) {
 */
 
     // Convert to radians
-    float phi = (phi_deg * pi)/180 ;                                   // radians
+    float phi = (phi_deg * M_PI)/180 ;                                   // radians
 
     /* 
     Equations for Inverse kinematics (3DOF Planar)
@@ -90,17 +90,25 @@ bool computeIK(float x, float y, float phi_deg) {
     // Solve for theta_3
     float theta_3 = phi - theta_1 - theta_2;
 
-    // Convert radians to Degrees
-    
-
     // Check that soln is real
+    if(!isnormal(theta_1)) { return false; }
+    if(!isnormal(theta_2)) { return false; }
+    if(!isnormal(theta_3)) { return false; }
+
+    // Convert radians to Degrees & insert into array
+    joint_angles[0] = static_cast<int>(theta_1*180/M_PI);
+    joint_angles[1] = static_cast<int>(theta_2*180/M_PI);
+    joint_angles[2] = static_cast<int>(theta_3*180/M_PI);
 
     // check that soln is w/in the workspace
     // -90 <= theta_1 <=90
     // -90 <= theta_2 <=90
     // -90 <= theta_3 <=90
-   
-    // If solution is found
+    for(int i=0; i<3; i++) {
+        if(joint_angles[i] < -90 || joint_angles[i] > 90) { return false; }
+    }
+
+    // If solution is found (and not caught by valid checks)
     return true;
     // Else: If no solution is found 
     // return false;
